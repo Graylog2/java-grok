@@ -35,9 +35,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com:thekrakken/java-grok.git</connection>
-    <developerConnection>scm:git:git@github.com:thekrakken/java-grok.git</developerConnection>
-    <url>scm:git:git@github.com:thekrakken/java-grok.git</url>
+    <connection>scm:git:git@github.com:Graylog2/java-grok.git</connection>
+    <developerConnection>scm:git:git@github.com:Graylog2/java-grok.git</developerConnection>
+    <url>scm:git:git@github.com:Graylog2/java-grok.git</url>
   </scm>
 
   <ciManagement>
