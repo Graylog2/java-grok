@@ -9,6 +9,17 @@ import org.junit.runners.MethodSorters;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -524,4 +535,51 @@ public class GrokTest {
         assertEquals(i, 4);
     }
 
+    @Test
+    public void test018_datetime_pattern_with_slashes() throws Throwable {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0L);
+        calendar.set(2015, Calendar.JULY, 31, 0, 0, 0);
+
+        final Grok grok = Grok.create("patterns/patterns");
+        grok.compile("Foo %{DATA:result;date;yyyy/MM/dd} Bar");
+
+        final Match gm = grok.match("Foo 2015/07/31 Bar");
+        gm.captures();
+
+        assertEquals(1, gm.getMatch().groupCount());
+        assertEquals(calendar.getTime(), gm.toMap().get("result"));
+    }
+
+    @Test
+    public void test019_datetime_pattern_with_with_dots() throws Throwable {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0L);
+        calendar.set(2015, Calendar.JULY, 31, 0, 0, 0);
+
+        final Grok grok = Grok.create("patterns/patterns");
+        grok.compile("Foo %{DATA:result;date;yyyy.MM.dd} Bar");
+
+        final Match gm = grok.match("Foo 2015.07.31 Bar");
+        gm.captures();
+
+        assertEquals(1, gm.getMatch().groupCount());
+        assertEquals(calendar.getTime(), gm.toMap().get("result"));
+    }
+
+    @Test
+    public void test020_datetime_pattern_with_with_hyphens() throws Throwable {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0L);
+        calendar.set(2015, Calendar.JULY, 31, 0, 0, 0);
+
+        final Grok grok = Grok.create("patterns/patterns");
+        grok.compile("Foo %{DATA:result;date;yyyy-MM-dd} Bar");
+
+        final Match gm = grok.match("Foo 2015-07-31 Bar");
+        gm.captures();
+
+        assertEquals(1, gm.getMatch().groupCount());
+        assertEquals(calendar.getTime(), gm.toMap().get("result"));
+    }
 }
