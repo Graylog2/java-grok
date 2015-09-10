@@ -199,8 +199,8 @@ public class Match {
       return value;
     }
     char[] tmp = value.toCharArray();
-    if ((tmp[0] == '"' && tmp[value.length() - 1] == '"')
-        || (tmp[0] == '\'' && tmp[value.length() - 1] == '\'')) {
+    if (value.length() > 1 && ((tmp[0] == '"' && tmp[value.length() - 1] == '"')
+        || (tmp[0] == '\'' && tmp[value.length() - 1] == '\''))) {
       value = value.substring(1, value.length() - 1);
     }
     return value;
