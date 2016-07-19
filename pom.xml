@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>io.thekraken</groupId>
+	<groupId>org.graylog2.repackaged</groupId>
 	<artifactId>grok</artifactId>
-	<version>0.1.5-SNAPSHOT</version>
+	<version>0.1.5-graylog-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Grok</name>
 	<description>Simple API that allows you to easily parse logs and other files</description>
@@ -46,9 +46,9 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git@github.com:thekrakken/java-grok.git</connection>
-		<developerConnection>scm:git:git@github.com:thekrakken/java-grok.git</developerConnection>
-		<url>scm:git:git@github.com:thekrakken/java-grok.git</url>
+		<connection>scm:git:git@github.com:Graylog2/java-grok.git</connection>
+		<developerConnection>scm:git:git@github.com:Graylog2/java-grok.git</developerConnection>
+		<url>scm:git:git@github.com:Graylog2/java-grok.git</url>
 	</scm>
 
 	<ciManagement>
