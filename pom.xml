@@ -3,7 +3,7 @@
 
 	<groupId>org.graylog2.repackaged</groupId>
 	<artifactId>grok</artifactId>
-	<version>0.1.6-graylog</version>
+	<version>0.1.7-graylog-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Grok</name>
 	<description>Simple API that allows you to easily parse logs and other files</description>
