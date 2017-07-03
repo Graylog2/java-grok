@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package oi.thekraken.grok.api;
+package io.thekraken.grok.api;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
 
-import com.google.code.regexp.Matcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -140,6 +142,7 @@ public class Match {
    * Match to the <tt>subject</tt> the <tt>regex</tt> and save the matched element into a map.
    *
    */
+  @SuppressWarnings("unchecked")
   public void captures() {
     if (match == null) {
       return;
@@ -149,7 +152,7 @@ public class Match {
     // _capture.put("LINE", this.line);
     // _capture.put("LENGTH", this.line.length() +"");
 
-    Map<String, String> mappedw = this.match.namedGroups();
+    Map<String, String> mappedw = GrokUtils.namedGroups(this.match,this.subject);
     Iterator<Entry<String, String>> it = mappedw.entrySet().iterator();
     while (it.hasNext()) {
 
@@ -183,7 +186,20 @@ public class Match {
         }
       }
 
-      capture.put(key, value);
+      if (capture.containsKey(key)) {
+    	Object currentValue = capture.get(key);
+    	if(currentValue instanceof List) {
+          ((List<Object>) currentValue).add(value);
+    	} else {
+    	  List<Object> list = new ArrayList<Object>();
+    	  list.add(currentValue);
+    	  list.add(value);
+    	  capture.put(key, list);
+    	}
+      } else {
+    	capture.put(key, value);
+      }
+      
       it.remove(); // avoids a ConcurrentModificationException
     }
   }
