@@ -38,11 +38,11 @@ public class Converter {
   private static final Pattern SPLITTER = Pattern.compile("[:;]");
 
   private static final Map<String, Type> TYPES =
-      Arrays.asList(Type.values()).stream()
+      Arrays.stream(Type.values())
           .collect(Collectors.toMap(t -> t.name().toLowerCase(), t -> t));
 
   private static final Map<String, Type> TYPE_ALIASES =
-      Arrays.asList(Type.values()).stream()
+      Arrays.stream(Type.values())
         .flatMap(type -> type.aliases.stream().map(alias -> new AbstractMap.SimpleEntry<>(alias, type)))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
