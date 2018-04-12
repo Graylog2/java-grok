@@ -1,367 +1,267 @@
 package io.thekraken.grok.api;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.Match;
-import oi.thekraken.grok.api.exception.GrokException;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
+import io.thekraken.grok.api.exception.GrokException;
+import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import java.util.*;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GrokTest {
+    GrokCompiler compiler;
 
-
-    /**
-     * Do some basic test
-     *
-     * @throws Throwable
-     */
-  /*
-   * public void testGrok() throws Throwable { Grok g = new Grok();
-   *
-   * g.addPatternFromFile("patterns/base"); g.compile("%{APACHE}"); Match gm =
-   * g.match("127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] \"GET /apache_pb.gif HTTP/1.0\" 200 2326"
-   * ); //Match gm = g.match("10.192.1.47"); gm.captures(); //See the result
-   * System.out.println(gm.toJson());
-   *
-   * }
-   */
-    private Grok g = Grok.EMPTY;
+    @Before
+    public void setUp() throws Exception {
+        compiler = GrokCompiler.newInstance();
+        compiler.register(Resources.getResource(ResourceManager.PATTERNS).openStream());
+    }
 
     @Test
     public void test000_basic() {
-        Grok g = new Grok();
+        GrokCompiler compiler = GrokCompiler.newInstance();
         boolean thrown = false;
 
-        // expected exception
         try {
-            g.addPatternFromFile("/good/luck");
-        } catch (GrokException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
-
-        thrown = false;
-
-        try {
-            g.addPattern(null, "");
-        } catch (GrokException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
-
-        thrown = false;
-        try {
-            g.copyPatterns(null);
-        } catch (GrokException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
-
-        thrown = false;
-        try {
-            g.copyPatterns(new HashMap<String, String>());
-        } catch (GrokException e) {
+            compiler.register(null, "");
+        } catch (NullPointerException e) {
             thrown = true;
         }
         assertTrue(thrown);
     }
 
-    @Test
-    public void test000_dummy() throws Throwable {
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        boolean thrown = false;
-        /** This check if grok throw */
-        try {
-            g.compile(null);
-        } catch (GrokException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
-        thrown = false;
-        try {
-            g.compile("");
-        } catch (GrokException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
-        thrown = false;
-        try {
-            g.compile("      ");
-        } catch (GrokException e) {
-            thrown = true;
-        }
-        assertTrue(thrown);
+    @Test(expected = Exception.class)
+    public void test_throwExceptionIfPatternIsNull() {
+            compiler.compile(null);
+    }
+
+    @Test(expected = Exception.class)
+    public void test_throwExceptionIfPatternIsEmptyString() {
+        compiler.compile("");
+    }
+
+    @Test(expected = Exception.class)
+    public void test_throwExceptionIfPatternContainsOnlyBlanks() {
+        compiler.compile("      ");
     }
 
     @Test
-    public void test001_static_metod_factory() throws Throwable {
+    public void test001_static_metod_factory() {
 
-        Grok staticGrok = Grok.create(ResourceManager.PATTERNS, "%{USERNAME}");
+        Grok staticGrok = compiler.compile("%{USERNAME}");
         Match gm = staticGrok.match("root");
-        gm.captures();
-        assertEquals("{USERNAME=root}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{USERNAME=root}", map.toString());
 
         gm = staticGrok.match("r00t");
-        gm.captures();
-        assertEquals("{USERNAME=r00t}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USERNAME=r00t}", map.toString());
 
         gm = staticGrok.match("guest");
-        gm.captures();
-        assertEquals("{USERNAME=guest}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USERNAME=guest}", map.toString());
 
         gm = staticGrok.match("guest1234");
-        gm.captures();
-        assertEquals("{USERNAME=guest1234}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USERNAME=guest1234}", map.toString());
 
         gm = staticGrok.match("john doe");
-        gm.captures();
-        assertEquals("{USERNAME=john}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USERNAME=john}", map.toString());
     }
 
-
     @Test
-    public void test001_username() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{USERNAME}");
+    public void test001_username2() {
+        Grok g = compiler.compile("%{USER}");
 
         Match gm = g.match("root");
-        gm.captures();
-        assertEquals("{USERNAME=root}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{USER=root}", map.toString());
 
         gm = g.match("r00t");
-        gm.captures();
-        assertEquals("{USERNAME=r00t}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USER=r00t}", map.toString());
 
         gm = g.match("guest");
-        gm.captures();
-        assertEquals("{USERNAME=guest}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USER=guest}", map.toString());
 
         gm = g.match("guest1234");
-        gm.captures();
-        assertEquals("{USERNAME=guest1234}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USER=guest1234}", map.toString());
 
         gm = g.match("john doe");
-        gm.captures();
-        assertEquals("{USERNAME=john}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{USER=john}", map.toString());
     }
 
     @Test
-    public void test001_username2() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{USER}");
-
-        Match gm = g.match("root");
-        gm.captures();
-        assertEquals("{USER=root}", gm.toMap().toString());
-
-        gm = g.match("r00t");
-        gm.captures();
-        assertEquals("{USER=r00t}", gm.toMap().toString());
-
-        gm = g.match("guest");
-        gm.captures();
-        assertEquals("{USER=guest}", gm.toMap().toString());
-
-        gm = g.match("guest1234");
-        gm.captures();
-        assertEquals("{USER=guest1234}", gm.toMap().toString());
-
-        gm = g.match("john doe");
-        gm.captures();
-        assertEquals("{USER=john}", gm.toMap().toString());
-    }
-
-    @Test
-    public void test002_numbers() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{NUMBER}");
+    public void test002_numbers() {
+        Grok g = compiler.compile("%{NUMBER}");
 
         Match gm = g.match("-42");
-        gm.captures();
-        assertEquals("{NUMBER=-42}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{NUMBER=-42}", map.toString());
 
     }
 
     @Test
-    public void test003_word() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{WORD}");
+    public void test003_word() {
+        Grok g = compiler.compile("%{WORD}");
 
         Match gm = g.match("a");
-        gm.captures();
-        assertEquals("{WORD=a}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{WORD=a}", map.toString());
 
         gm = g.match("abc");
-        gm.captures();
-        assertEquals("{WORD=abc}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{WORD=abc}", map.toString());
 
     }
 
     @Test
-    public void test004_SPACE() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{SPACE}");
+    public void test004_SPACE() {
+        Grok g = compiler.compile("%{SPACE}");
 
         Match gm = g.match("abc dc");
-        gm.captures();
-        assertEquals("{SPACE=}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{SPACE=}", map.toString());
 
     }
 
     @Test
-    public void test004_number() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{NUMBER}");
+    public void test004_number() {
+        Grok g = compiler.compile("%{NUMBER}");
 
         Match gm = g.match("Something costs $55.4!");
-        gm.captures();
-        assertEquals("{NUMBER=55.4}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{NUMBER=55.4}", map.toString());
 
     }
 
     @Test
-    public void test005_NOTSPACE() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{NOTSPACE}");
+    public void test005_NOTSPACE() {
+        Grok g = compiler.compile("%{NOTSPACE}");
 
         Match gm = g.match("abc dc");
-        gm.captures();
-        assertEquals("{NOTSPACE=abc}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{NOTSPACE=abc}", map.toString());
 
     }
 
     @Test
-    public void test006_QUOTEDSTRING() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{QUOTEDSTRING:text}");
+    public void test006_QUOTEDSTRING() {
+        Grok g = compiler.compile("%{QUOTEDSTRING:text}");
 
         Match gm = g.match("\"abc dc\"");
-        gm.captures();
-        assertEquals("{text=abc dc}", gm.toMap().toString());
-
+        Map<String, Object> map = gm.capture();
+        assertEquals("{text=abc dc}", map.toString());
     }
 
     @Test
-    public void test007_UUID() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{UUID}");
+    public void test007_UUID() {
+        Grok g = compiler.compile("%{UUID}");
 
         Match gm = g.match("61243740-4786-11e3-86a7-0002a5d5c51b");
-        gm.captures();
-        assertEquals("{UUID=61243740-4786-11e3-86a7-0002a5d5c51b}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{UUID=61243740-4786-11e3-86a7-0002a5d5c51b}", map.toString());
 
         gm = g.match("7F8C7CB0-4786-11E3-8F96-0800200C9A66");
-        gm.captures();
-        assertEquals("{UUID=7F8C7CB0-4786-11E3-8F96-0800200C9A66}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{UUID=7F8C7CB0-4786-11E3-8F96-0800200C9A66}", map.toString());
 
         gm = g.match("03A8413C-F604-4D21-8F4D-24B19D98B5A7");
-        gm.captures();
-        assertEquals("{UUID=03A8413C-F604-4D21-8F4D-24B19D98B5A7}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{UUID=03A8413C-F604-4D21-8F4D-24B19D98B5A7}", map.toString());
 
     }
 
     @Test
-    public void test008_MAC() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{MAC}");
+    public void test008_MAC() {
+        Grok g = compiler.compile("%{MAC}");
 
         Match gm = g.match("5E:FF:56:A2:AF:15");
-        gm.captures();
-        assertEquals("{MAC=5E:FF:56:A2:AF:15}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{MAC=5E:FF:56:A2:AF:15}", map.toString());
 
     }
 
     @Test
-    public void test009_IPORHOST() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{IPORHOST}");
+    public void test009_IPORHOST() {
+        Grok g = compiler.compile("%{IPORHOST}");
 
         Match gm = g.match("www.google.fr");
-        gm.captures();
-        assertEquals("{IPORHOST=www.google.fr}", gm.toMap().toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals("{IPORHOST=www.google.fr}", map.toString());
 
         gm = g.match("www.google.com");
-        gm.captures();
-        assertEquals("{IPORHOST=www.google.com}", gm.toMap().toString());
+        map = gm.capture();
+        assertEquals("{IPORHOST=www.google.com}", map.toString());
     }
 
     @Test
-    public void test010_HOSTPORT() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{HOSTPORT}");
+    public void test010_HOSTPORT() {
+        Grok g = compiler.compile("%{HOSTPORT}");
 
         Match gm = g.match("www.google.fr:80");
-        gm.captures();
-        assertEquals("{HOSTPORT=www.google.fr:80, IPORHOST=www.google.fr, PORT=80}", gm.toMap()
-                .toString());
+        Map<String, Object> map = gm.capture();
+        assertEquals(ImmutableMap.of(
+            "HOSTPORT", "www.google.fr:80",
+            "IPORHOST", "www.google.fr",
+            "PORT", "80"), map);
     }
 
     @Test
-    public void test011_COMBINEDAPACHELOG() throws Throwable {
-
-        g.addPatternFromFile(ResourceManager.PATTERNS);
-        g.compile("%{COMBINEDAPACHELOG}");
+    public void test011_COMBINEDAPACHELOG() {
+        Grok g = compiler.compile("%{COMBINEDAPACHELOG}");
 
         Match gm =
                 g.match("112.169.19.192 - - [06/Mar/2013:01:36:30 +0900] \"GET / HTTP/1.1\" 200 44346 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.152 Safari/537.22\"");
-        gm.captures();
-        assertNotNull(gm.toJson());
+        Map<String, Object> map = gm.capture();
         assertEquals(
-                gm.toMap().get("agent").toString(),
+                map.get("agent").toString(),
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.152 Safari/537.22");
-        assertEquals(gm.toMap().get("clientip").toString(), "112.169.19.192");
-        assertEquals(gm.toMap().get("httpversion").toString(), "1.1");
-        assertEquals(gm.toMap().get("timestamp").toString(), "06/Mar/2013:01:36:30 +0900");
-        assertEquals(gm.toMap().get("TIME").toString(), "01:36:30");
+        assertEquals(map.get("clientip").toString(), "112.169.19.192");
+        assertEquals(map.get("httpversion").toString(), "1.1");
+        assertEquals(map.get("timestamp").toString(), "06/Mar/2013:01:36:30 +0900");
+        assertEquals(map.get("TIME").toString(), "01:36:30");
 
         gm =
                 g.match("112.169.19.192 - - [06/Mar/2013:01:36:30 +0900] \"GET /wp-content/plugins/easy-table/themes/default/style.css?ver=1.0 HTTP/1.1\" 304 - \"http://www.nflabs.com/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.152 Safari/537.22\"");
-        gm.captures();
-        assertNotNull(gm.toJson());
-        // System.out.println(gm.toJson());
+        map = gm.capture();
         assertEquals(
-                gm.toMap().get("agent").toString(),
+                map.get("agent").toString(),
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.152 Safari/537.22");
-        assertEquals(gm.toMap().get("clientip").toString(), "112.169.19.192");
-        assertEquals(gm.toMap().get("httpversion").toString(), "1.1");
-        assertEquals(gm.toMap().get("request").toString(),
+        assertEquals(map.get("clientip").toString(), "112.169.19.192");
+        assertEquals(map.get("httpversion").toString(), "1.1");
+        assertEquals(map.get("request").toString(),
                 "/wp-content/plugins/easy-table/themes/default/style.css?ver=1.0");
-        assertEquals(gm.toMap().get("TIME").toString(), "01:36:30");
-
-        // assertEquals("{HOSTPORT=www.google.fr:80, IPORHOST=www.google.fr, PORT=80}",
-        // gm.toMap().toString());
-
+        assertEquals(map.get("TIME").toString(), "01:36:30");
     }
 
     /**
@@ -369,9 +269,9 @@ public class GrokTest {
      */
 
     @Test
-    public void test012_day() throws Throwable {
+    public void test012_day() {
 
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{DAY}");
+        Grok grok = compiler.compile("%{DAY}");
 
         List<String> days = new ArrayList<String>();
         days.add("Mon");
@@ -392,33 +292,32 @@ public class GrokTest {
         int i = 0;
         for (String day : days) {
             Match m = grok.match(day);
-            m.captures();
-            assertNotNull(m.toMap());
-            assertEquals(m.toMap().get("DAY"), days.get(i));
+            Map<String, Object> map = m.capture();
+            assertNotNull(map);
+            assertEquals(map.get("DAY"), days.get(i));
             i++;
         }
     }
 
     @Test
     public void test013_IpSet() throws Throwable {
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{IP}");
+        Grok grok = compiler.compile("%{IP}");
 
-        BufferedReader br = new BufferedReader(new FileReader(ResourceManager.IP));
+        BufferedReader br = new BufferedReader(new FileReader(Resources.getResource(ResourceManager.IP).getFile()));
         String line;
         System.out.println("Starting test with ip");
         while ((line = br.readLine()) != null) {
             Match gm = grok.match(line);
-            gm.captures();
-            assertNotNull(gm.toJson());
-            assertNotEquals("{\"Error\":\"Error\"}", gm.toJson());
-            assertEquals(gm.toMap().get("IP"), line);
+            final Map<String, Object> map = gm.capture();
+            Assertions.assertThat(map).doesNotContainKey("Error");
+            assertEquals(map.get("IP"), line);
         }
     }
 
     @Test
-    public void test014_month() throws Throwable {
+    public void test014_month() {
 
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{MONTH}");
+        Grok grok = compiler.compile("%{MONTH}");
 
         String[] array = {"Jan", "January", "Feb", "February", "Mar", "March", "Apr", "April", "May", "Jun", "June",
                 "Jul", "July", "Aug", "August", "Sep", "September", "Oct", "October", "Nov",
@@ -427,16 +326,16 @@ public class GrokTest {
         int i = 0;
         for (String month : months) {
             Match m = grok.match(month);
-            m.captures();
-            assertNotNull(m.toMap());
-            assertEquals(m.toMap().get("MONTH"), months.get(i));
+            Map<String, Object> map = m.capture();
+            assertNotNull(map);
+            assertEquals(map.get("MONTH"), months.get(i));
             i++;
         }
     }
 
     @Test
     public void test015_iso8601() throws GrokException {
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{TIMESTAMP_ISO8601}");
+        Grok grok = compiler.compile("%{TIMESTAMP_ISO8601}");
 
         String[] array =
                 {"2001-01-01T00:00:00",
@@ -458,16 +357,16 @@ public class GrokTest {
         int i = 0;
         for (String time : times) {
             Match m = grok.match(time);
-            m.captures();
-            assertNotNull(m.toMap());
-            assertEquals(m.toMap().get("TIMESTAMP_ISO8601"), times.get(i));
+            Map<String, Object> map = m.capture();
+            assertNotNull(map);
+            assertEquals(map.get("TIMESTAMP_ISO8601"), times.get(i));
             i++;
         }
     }
 
     @Test
     public void test016_uri() throws GrokException {
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{URI}");
+        Grok grok = compiler.compile("%{URI}");
 
         String[] array =
                 {
@@ -502,17 +401,17 @@ public class GrokTest {
         int i = 0;
         for (String uri : uris) {
             Match m = grok.match(uri);
-            m.captures();
-            assertNotNull(m.toMap());
-            assertEquals(m.toMap().get("URI"), uris.get(i));
-            assertNotNull(m.toMap().get("URIPROTO"));
+            Map<String, Object> map = m.capture();
+            assertNotNull(map);
+            assertEquals(map.get("URI"), uris.get(i));
+            assertNotNull(map.get("URIPROTO"));
             i++;
         }
     }
 
     @Test
     public void test017_nonMachingList() throws GrokException {
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{URI}");
+        Grok grok = compiler.compile("%{URI}");
 
         String[] array =
                 {
@@ -525,10 +424,10 @@ public class GrokTest {
         int i = 0;
         for (String uri : uris) {
             Match m = grok.match(uri);
-            m.captures();
-            assertNotNull(m.toMap());
+            Map<String, Object> map = m.capture();
+            assertNotNull(map);
             if (i == 2) {
-                assertEquals(Collections.EMPTY_MAP, m.toMap());
+                assertEquals(Collections.EMPTY_MAP, map);
             }
             i++;
         }
@@ -536,50 +435,144 @@ public class GrokTest {
     }
 
     @Test
-    public void test018_datetime_pattern_with_slashes() throws Throwable {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(0L);
-        calendar.set(2015, Calendar.JULY, 31, 0, 0, 0);
+    public void test018_namedOnlySimpleCase() throws GrokException {
+        compiler.register("WORD", "foo|bar");
+        compiler.register("TEXT", "<< %{WORD}+ >>");
 
-        final Grok grok = Grok.create("patterns/patterns");
-        grok.compile("Foo %{DATA:result;date;yyyy/MM/dd} Bar");
+        Grok g = compiler.compile("%{TEXT:text}", true);
 
-        final Match gm = grok.match("Foo 2015/07/31 Bar");
-        gm.captures();
-
-        assertEquals(1, gm.getMatch().groupCount());
-        assertEquals(calendar.getTime(), gm.toMap().get("result"));
+        String text = "<< barfoobarfoo >>";
+        Match match = g.match(text);
+        Map<String, Object> map = match.capture();
+        assertEquals("unable to parse: " + text,
+                text,
+                map.get("text"));
     }
 
     @Test
-    public void test019_datetime_pattern_with_with_dots() throws Throwable {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(0L);
-        calendar.set(2015, Calendar.JULY, 31, 0, 0, 0);
+    public void test019_namedOnlyAllCases() throws GrokException {
+        /* like previous test, but systematic all four possible options */
+        testPatternRepetitions(true, "(?:foo|bar)");
+        testPatternRepetitions(true, "foo|bar");
+        testPatternRepetitions(false, "(?:foo|bar)");
+        testPatternRepetitions(false, "foo|bar");
+    }
 
-        final Grok grok = Grok.create("patterns/patterns");
-        grok.compile("Foo %{DATA:result;date;yyyy.MM.dd} Bar");
+    private void testPatternRepetitions(boolean namedOnly, String pattern) throws GrokException {
+        String description = format("[readonly:%s pattern:%s] ", namedOnly, pattern);
 
-        final Match gm = grok.match("Foo 2015.07.31 Bar");
-        gm.captures();
+        compiler.register("WORD", pattern);
+        compiler.register("TEXT", "<< %{WORD}+ >>");
 
-        assertEquals(1, gm.getMatch().groupCount());
-        assertEquals(calendar.getTime(), gm.toMap().get("result"));
+        Grok grok = compiler.compile("%{TEXT:text}", namedOnly);
+        assertMatches(description, grok, "<< foo >>");
+        assertMatches(description, grok, "<< foobar >>");
+        assertMatches(description, grok, "<< foofoobarbar >>");
+        assertMatches(description, grok, "<< barfoobarfoo >>");
+    }
+
+    private void assertMatches(String description, Grok grok, String text) {
+        Match match = grok.match(text);
+        Map<String, Object> map = match.capture();
+        assertEquals(format("%s: unable to parse '%s'", description, text),
+                text,
+                map.get("text"));
     }
 
     @Test
-    public void test020_datetime_pattern_with_with_hyphens() throws Throwable {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(0L);
-        calendar.set(2015, Calendar.JULY, 31, 0, 0, 0);
+    public void test020_postfix_patterns() throws Throwable {
+        GrokCompiler compiler = GrokCompiler.newInstance();
+        compiler.register(Resources.getResource("patterns/postfix").openStream());
+        compiler.register(Resources.getResource("patterns/patterns").openStream());
+        Grok grok = compiler.compile("%{POSTFIX_SMTPD}", false);
 
-        final Grok grok = Grok.create("patterns/patterns");
-        grok.compile("Foo %{DATA:result;date;yyyy-MM-dd} Bar");
+        assertTrue(grok.getPatterns().containsKey("POSTFIX_SMTPD"));
+    }
 
-        final Match gm = grok.match("Foo 2015-07-31 Bar");
-        gm.captures();
+    @Test
+    public void test021_postfix_patterns_with_named_captures_only() throws Throwable {
+        GrokCompiler compiler = GrokCompiler.newInstance();
+        compiler.register(Resources.getResource("patterns/postfix").openStream());
+        compiler.register(Resources.getResource("patterns/patterns").openStream());
+        Grok grok = compiler.compile("%{POSTFIX_SMTPD}", true);
 
-        assertEquals(1, gm.getMatch().groupCount());
-        assertEquals(calendar.getTime(), gm.toMap().get("result"));
+        assertTrue(grok.getPatterns().containsKey("POSTFIX_SMTPD"));
+    }
+
+    @Test
+    public void test022_named_captures_with_missing_definition() {
+        ensureAbortsWithDefinitionMissing("FOO %{BAR}", "%{FOO}", true);
+    }
+
+    @Test
+    public void test023_captures_with_missing_definition() {
+        ensureAbortsWithDefinitionMissing("FOO %{BAR}", "%{FOO:name}", false);
+    }
+
+    @Test
+    public void test024_captures_with_missing_definition() {
+        ensureAbortsWithDefinitionMissing("FOO %{BAR}", "%{FOO}", false);
+    }
+
+    @Test
+    public void allowClassPathPatternFiles() throws Exception {
+        GrokCompiler compiler = GrokCompiler.newInstance();
+        compiler.register(Resources.getResource("patterns/patterns").openStream());
+        compiler.compile("%{USERNAME}", false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createGrokWithDefaultPatterns() throws GrokException {
+        GrokCompiler compiler = GrokCompiler.newInstance();
+        compiler.compile("%{USERNAME}", false);
+    }
+
+    private void ensureAbortsWithDefinitionMissing(String pattern, String compilePattern, boolean namedOnly) {
+        try {
+            compiler.compile(pattern);
+            compiler.compile(compilePattern, namedOnly);
+            fail("should abort due to missing definition");
+        } catch (Exception e) {
+            assertThat(e.getMessage(), containsString("No definition for key"));
+        }
+    }
+
+    @Test
+    public void testGroupTypes() {
+        Grok grok = compiler.compile("%{HTTPDATE:timestamp;date;dd/MMM/yyyy:HH:mm:ss Z} %{USERNAME:username:text} %{IPORHOST:host}:%{POSINT:port:integer}", true);
+        assertEquals(Converter.Type.DATETIME, grok.groupTypes.get("timestamp"));
+        assertEquals(Converter.Type.STRING, grok.groupTypes.get("username"));
+        assertEquals(Converter.Type.INT, grok.groupTypes.get("port"));
+        assertNull(grok.groupTypes.get("host"));
+
+       Match match = grok.match("07/Mar/2004:16:45:56 -0800 test 64.242.88.10:8080");
+       Map<String, Object> result = match.capture();
+       assertEquals("test", result.get("username"));
+       assertEquals("64.242.88.10", result.get("host"));
+       assertEquals(8080, result.get("port"));
+       assertTrue(result.get("timestamp") instanceof Instant);
+    }
+
+    @Test
+    public void testTimeZone() {
+        // no timezone. default to UTC
+        String date = "03/19/2018 14:11:00";
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
+        Grok grok = compiler.compile("%{DATESTAMP:timestamp;date;MM/dd/yyyy HH:mm:ss}", true);
+        Instant instant = (Instant) grok.match(date).capture().get("timestamp");
+        assertEquals(ZonedDateTime.parse(date, dtf.withZone(ZoneOffset.UTC)).toInstant(), instant);
+
+        // set default timezone to PST
+        ZoneId PST = ZoneId.of("PST", ZoneId.SHORT_IDS);
+        grok = compiler.compile("%{DATESTAMP:timestamp;date;MM/dd/yyyy HH:mm:ss}", PST, true);
+        instant = (Instant) grok.match(date).capture().get("timestamp");
+        assertEquals(ZonedDateTime.parse(date, dtf.withZone(PST)).toInstant(), instant);
+
+        // when timestamp has timezone, use it instead of the default.
+        String dateWithTimeZone = "07/Mar/2004:16:45:56 +0800";
+        dtf = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z");
+        grok = compiler.compile("%{HTTPDATE:timestamp;date;dd/MMM/yyyy:HH:mm:ss Z}", PST, true);
+        instant = (Instant) grok.match(dateWithTimeZone).capture().get("timestamp");
+        assertEquals(ZonedDateTime.parse(dateWithTimeZone, dtf.withZone(ZoneOffset.ofHours(8))).toInstant(), instant);
     }
 }

@@ -1,19 +1,28 @@
 package io.thekraken.grok.api;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.exception.GrokException;
+import com.google.common.io.Resources;
+import io.thekraken.grok.api.exception.GrokException;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GrokListTest {
+    GrokCompiler compiler;
+
+    @Before
+    public void setUp() throws Exception {
+        compiler = GrokCompiler.newInstance();
+        compiler.register(Resources.getResource(ResourceManager.PATTERNS).openStream());
+    }
 
     @Test
     public void test_001() throws GrokException {
@@ -30,17 +39,15 @@ public class GrokListTest {
         logs.add("124.2.84.36");
 
 
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{IP}");
-        List<String> json = grok.captures(logs);
-        assertNotNull(json);
+        Grok grok = compiler.compile("%{IP}");
+        ArrayList<Map<String, Object>> capture = grok.capture(logs);
+        assertNotNull(capture);
         int i = 0;
-        for (String elem : json) {
+        for (Map<String, Object> elem : capture) {
             assertNotNull(elem);
             assertEquals(elem, grok.capture(logs.get(i)));
             i++;
-            //assert
         }
-
     }
 
     @Test
@@ -57,18 +64,14 @@ public class GrokListTest {
         logs.add("170.36.40.12");
         logs.add("124.2.84.36");
 
-
-        Grok grok = Grok.create(ResourceManager.PATTERNS, "%{IP}");
-        List<String> json = grok.captures(logs);
-        assertNotNull(json);
+        Grok grok = compiler.compile("%{IP}");
+        ArrayList<Map<String, Object>> capture = grok.capture(logs);
+        assertNotNull(capture);
         int i = 0;
-        for (String elem : json) {
-            System.out.println(elem);
+        for (Map<String, Object> elem : capture) {
             assertNotNull(elem);
             assertEquals(elem, grok.capture(logs.get(i)));
             i++;
-            //assert
         }
-
     }
 }

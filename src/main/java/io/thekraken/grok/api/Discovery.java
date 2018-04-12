@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package oi.thekraken.grok.api;
+package io.thekraken.grok.api;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,13 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-
-import com.google.code.regexp.Matcher;
-import com.google.code.regexp.Pattern;
-
-import oi.thekraken.grok.api.exception.GrokException;
 
 /**
  * {@code Discovery} try to find the best pattern for the given string.
@@ -112,6 +109,8 @@ public class Discovery {
     Map<String, String> gPatterns = grok.getPatterns();
     // Boolean done = false;
     String texte = text;
+    GrokCompiler compiler = GrokCompiler.newInstance();
+    compiler.register(gPatterns);
 
     // Compile the pattern
     Iterator<Entry<String, String>> it = gPatterns.entrySet().iterator();
@@ -119,15 +118,13 @@ public class Discovery {
       @SuppressWarnings("rawtypes")
       Map.Entry pairs = (Map.Entry) it.next();
       String key = pairs.getKey().toString();
-      Grok g = new Grok();
 
       // g.patterns.putAll( gPatterns );
       try {
-        g.copyPatterns(gPatterns);
+        Grok g = compiler.compile("%{" + key + "}");
         g.setSaved_pattern(key);
-        g.compile("%{" + key + "}");
         groks.put(key, g);
-      } catch (GrokException e) {
+      } catch (Exception e) {
         // Add logger
         continue;
       }
