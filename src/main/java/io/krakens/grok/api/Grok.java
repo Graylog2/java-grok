@@ -5,10 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import io.krakens.grok.api.Converter.IConverter;
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 

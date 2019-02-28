@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 /**
  * {@code Discovery} try to find the best pattern for the given string.

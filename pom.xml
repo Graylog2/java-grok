@@ -55,6 +55,7 @@
 		<assertj.version>3.9.1</assertj.version>
 		<common.version>3.7</common.version>
 		<guava.version>24.0-jre</guava.version>
+		<named.regex.version>0.2.3</named.regex.version>
 		<!-- maven -->
 		<java.version>1.8</java.version>
 	</properties>

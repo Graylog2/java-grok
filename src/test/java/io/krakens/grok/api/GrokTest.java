@@ -21,10 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import io.krakens.grok.api.exception.GrokException;
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;

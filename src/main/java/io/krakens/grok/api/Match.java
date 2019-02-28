@@ -8,7 +8,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
+
+import com.google.code.regexp.Matcher;
+
 
 import io.krakens.grok.api.Converter.IConverter;
 import io.krakens.grok.api.exception.GrokException;

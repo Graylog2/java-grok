@@ -127,4 +127,11 @@ public class BasicTest {
     assertEquals("(?<name0>€)", grok.getNamedRegex());
   }
 
+  @Test
+  public void test008_namedGroupPatternWithUnderscore() throws GrokException {
+    compiler.register("test", "hello world");
+    Grok grok = compiler.compile("%{test}");
+    assertEquals("(?<name_0>hello world)", grok.getNamedRegex());
+  }
+
 }
