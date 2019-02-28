@@ -93,6 +93,13 @@
 			<version>1.7.21</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.github.tony19</groupId>
+			<artifactId>named-regexp</artifactId>
+			<version>${named.regex.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
