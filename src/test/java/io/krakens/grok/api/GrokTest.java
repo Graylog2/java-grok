@@ -672,4 +672,13 @@ public class GrokTest {
     instant = (Instant) grok.match(dateWithTimeZone).capture().get("timestamp");
     assertEquals(ZonedDateTime.parse(dateWithTimeZone, dtf.withZone(ZoneOffset.ofHours(8))).toInstant(), instant);
   }
+
+  @Test
+  public void testNamedGroupWithUnderscore() {
+    String grokPatternName = "NAMEDGROUPWITHUNDERSCORE";
+    String testString = "test";
+    Grok grok = compiler.compile("%{" + grokPatternName + "}");
+    String result = (String) grok.match(testString).capture().get(grokPatternName);
+    assertEquals("test", result);
+  }
 }
