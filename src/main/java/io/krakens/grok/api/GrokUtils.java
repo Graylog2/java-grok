@@ -4,8 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 
 /**
@@ -33,22 +34,13 @@ public class GrokUtils {
           + "\\}");
 
   public static final Pattern NAMED_REGEX = Pattern
-      .compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
+      .compile("\\(\\?<([a-zA-Z][a-zA-Z0-9_]*)>");
 
   public static Set<String> getNameGroups(String regex) {
     Set<String> namedGroups = new LinkedHashSet<>();
     Matcher matcher = NAMED_REGEX.matcher(regex);
     while (matcher.find()) {
       namedGroups.add(matcher.group(1));
-    }
-    return namedGroups;
-  }
-
-  public static Map<String, String> namedGroups(Matcher matcher, Set<String> groupNames) {
-    Map<String, String> namedGroups = new LinkedHashMap<>();
-    for (String groupName : groupNames) {
-      String groupValue = matcher.group(groupName);
-      namedGroups.put(groupName, groupValue);
     }
     return namedGroups;
   }

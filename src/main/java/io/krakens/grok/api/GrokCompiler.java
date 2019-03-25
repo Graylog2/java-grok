@@ -15,8 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
+
 
 import io.krakens.grok.api.exception.GrokException;
 
@@ -158,13 +160,12 @@ public class GrokCompiler {
       }
       iterationLeft--;
 
-      Set<String> namedGroups = GrokUtils.getNameGroups(GrokUtils.GROK_PATTERN.pattern());
       Matcher matcher = GrokUtils.GROK_PATTERN.matcher(namedRegex);
       // Match %{Foo:bar} -> pattern name and subname
       // Match %{Foo=regex} -> add new regex definition
       if (matcher.find()) {
         continueIteration = true;
-        Map<String, String> group = GrokUtils.namedGroups(matcher, namedGroups);
+        Map<String, String> group = matcher.namedGroups();
         if (group.get("definition") != null) {
           patternDefinitions.put(group.get("pattern"), group.get("definition"));
           group.put("name", group.get("name") + "=" + group.get("definition"));

@@ -8,7 +8,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
+
+import com.google.code.regexp.Matcher;
+
 
 import io.krakens.grok.api.Converter.IConverter;
 import io.krakens.grok.api.exception.GrokException;
@@ -127,7 +129,7 @@ public class Match {
     // _capture.put("LINE", this.line);
     // _capture.put("LENGTH", this.line.length() +"");
 
-    Map<String, String> mappedw = GrokUtils.namedGroups(this.match, this.grok.namedGroups);
+    Map<String, String> mappedw = this.match.namedGroups();
 
     mappedw.forEach((key, valueString) -> {
       String id = this.grok.getNamedRegexCollectionById(key);

@@ -21,10 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import io.krakens.grok.api.exception.GrokException;
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
@@ -670,5 +671,14 @@ public class GrokTest {
     grok = compiler.compile("%{HTTPDATE:timestamp;date;dd/MMM/yyyy:HH:mm:ss Z}", pst, true);
     instant = (Instant) grok.match(dateWithTimeZone).capture().get("timestamp");
     assertEquals(ZonedDateTime.parse(dateWithTimeZone, dtf.withZone(ZoneOffset.ofHours(8))).toInstant(), instant);
+  }
+
+  @Test
+  public void testNamedGroupWithUnderscore() {
+    String grokPatternName = "NAMEDGROUPWITHUNDERSCORE";
+    String testString = "test";
+    Grok grok = compiler.compile("%{" + grokPatternName + "}");
+    String result = (String) grok.match(testString).capture().get(grokPatternName);
+    assertEquals("test", result);
   }
 }
