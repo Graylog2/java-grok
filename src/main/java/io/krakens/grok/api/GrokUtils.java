@@ -34,7 +34,7 @@ public class GrokUtils {
           + "\\}");
 
   public static final Pattern NAMED_REGEX = Pattern
-      .compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
+      .compile("\\(\\?<([a-zA-Z][a-zA-Z0-9_]*)>");
 
   public static Set<String> getNameGroups(String regex) {
     Set<String> namedGroups = new LinkedHashSet<>();

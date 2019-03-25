@@ -14,7 +14,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 
 import io.krakens.grok.api.exception.GrokException;
@@ -132,6 +134,20 @@ public class BasicTest {
     compiler.register("test", "(?<test_field>test)");
     Grok grok = compiler.compile("%{test}");
     assertEquals("(?<name0>(?<test_field>test))", grok.getNamedRegex());
+    Set<String> expectedNamedGroups = new HashSet<>(2);
+    expectedNamedGroups.add("name0");
+    expectedNamedGroups.add("test_field");
+    assertEquals(expectedNamedGroups, grok.namedGroups);
   }
 
+  @Test
+  public void test009_namedGroupPattern() throws GrokException {
+    compiler.register("test", "(?<testfield>test)");
+    Grok grok = compiler.compile("%{test}");
+    assertEquals("(?<name0>(?<testfield>test))", grok.getNamedRegex());
+    Set<String> expectedNamedGroups = new HashSet<>(2);
+    expectedNamedGroups.add("name0");
+    expectedNamedGroups.add("testfield");
+    assertEquals(expectedNamedGroups, grok.namedGroups);
+  }
 }
