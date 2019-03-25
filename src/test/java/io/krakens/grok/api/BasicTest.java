@@ -129,9 +129,9 @@ public class BasicTest {
 
   @Test
   public void test008_namedGroupPatternWithUnderscore() throws GrokException {
-    compiler.register("test", "hello world");
+    compiler.register("test", "(?<test_field>test)");
     Grok grok = compiler.compile("%{test}");
-    assertEquals("(?<name_0>hello world)", grok.getNamedRegex());
+    assertEquals("(?<name0>(?<test_field>test))", grok.getNamedRegex());
   }
 
 }
