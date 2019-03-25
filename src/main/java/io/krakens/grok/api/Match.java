@@ -129,7 +129,7 @@ public class Match {
     // _capture.put("LINE", this.line);
     // _capture.put("LENGTH", this.line.length() +"");
 
-    Map<String, String> mappedw = GrokUtils.namedGroups(this.match, this.grok.namedGroups);
+    Map<String, String> mappedw = this.match.namedGroups();
 
     mappedw.forEach((key, valueString) -> {
       String id = this.grok.getNamedRegexCollectionById(key);
