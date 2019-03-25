@@ -40,6 +40,13 @@
 		<url>https://github.com/graylog-labs/java-grok</url>
 	</scm>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<properties>
 		<junit.version>4.12</junit.version>
 		<assertj.version>3.9.1</assertj.version>
