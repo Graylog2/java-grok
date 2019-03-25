@@ -35,20 +35,10 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git@github.com:Graylog2/java-grok.git</connection>
-		<developerConnection>scm:git:git@github.com:Graylog2/java-grok.git</developerConnection>
-		<url>scm:git:git@github.com:Graylog2/java-grok.git</url>
+		<connection>scm:git:git@github.com:graylog-labs/java-grok.git</connection>
+		<developerConnection>scm:git:git@github.com:graylog-labs/java-grok.git</developerConnection>
+		<url>https://github.com/graylog-labs/java-grok</url>
 	</scm>
-
-	<ciManagement>
-		<system>Travis</system>
-		<url>https://travis-ci.org/thekrakken/java-grok</url>
-	</ciManagement>
-
-	<issueManagement>
-		<system>Github</system>
-		<url>https://github.com/thekrakken/java-grok/issues</url>
-	</issueManagement>
 
 	<properties>
 		<junit.version>4.12</junit.version>
