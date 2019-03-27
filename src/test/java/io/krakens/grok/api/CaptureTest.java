@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -145,5 +147,35 @@ public class CaptureTest {
       assertThat(e.getMessage(),
           containsString("has multiple non-null values, this is not allowed in flattened mode"));
     }
+  }
+
+  @Test
+  public void test009_capturedFlattenBehavior() throws GrokException {
+    final Grok grok1 = compiler.compile("%{ORTEST}");
+    final Match match1 = grok1.match("test1");
+    final Map<String, Object> map1 = match1.captureFlattened();
+    assertEquals(map1.size(), 2);
+    assertEquals("test1",map1.get("test"));
+    assertEquals("test1", map1.get("ORTEST"));
+
+    final Match match2 = grok1.match("test2");
+    final Map<String, Object> map2 = match2.captureFlattened();
+    assertEquals(map2.size(),2);
+    assertEquals("test2", map2.get("test"));
+    assertEquals("test2", map2.get("ORTEST"));
+
+    final Grok grok2 = compiler.compile("%{TWOINTS}");
+    final Match match3 = grok2.match("22 23");
+    final Map<String, Object> map3 = match3.captureFlattened();
+    assertEquals(2, map3.size());
+    assertEquals("22 23", map3.get("TWOINTS"));
+    assertEquals(Arrays.asList("22", "23"), map3.get("INT"));
+
+    final Grok grok3 = compiler.compile("%{TWOINTS}");
+    final Match match4 = grok2.match("22 22");
+    final Map<String, Object> map4 = match4.captureFlattened();
+    assertEquals(2, map4.size());
+    assertEquals("22 22", map4.get("TWOINTS"));
+    assertEquals("22", map4.get("INT"));
   }
 }
