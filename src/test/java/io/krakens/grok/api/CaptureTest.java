@@ -126,30 +126,6 @@ public class CaptureTest {
   }
 
   @Test
-  public void test008_flattenDuplicateKeys() throws GrokException {
-    Grok grok = compiler.compile("(?:foo %{INT:id} bar|bar %{INT:id} foo)");
-    Match match = grok.match("foo 123 bar");
-    Map<String, Object> map = match.captureFlattened();
-    assertEquals(map.size(), 1);
-    assertEquals(map.get("id"), "123");
-    Match m2 = grok.match("bar 123 foo");
-    map = m2.captureFlattened();
-    assertEquals(map.size(), 1);
-    assertEquals(map.get("id"), "123");
-
-    grok = compiler.compile("%{INT:id} %{INT:id}");
-    Match m3 = grok.match("123 456");
-
-    try {
-      m3.captureFlattened();
-      fail("should report error due tu ambiguity");
-    } catch (RuntimeException e) {
-      assertThat(e.getMessage(),
-          containsString("has multiple non-null values, this is not allowed in flattened mode"));
-    }
-  }
-
-  @Test
   public void test009_capturedFlattenBehavior() throws GrokException {
     final Grok grok1 = compiler.compile("%{ORTEST}");
     final Match match1 = grok1.match("test1");
