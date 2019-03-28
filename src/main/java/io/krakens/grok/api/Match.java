@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.code.regexp.Matcher;
 
@@ -103,9 +105,8 @@ public class Match {
    * See also {@link #capture} which returns multiple values of the same key as list.
    *
    * @return the matched elements
-   * @throws GrokException if a keys has multiple non-null values.
    */
-  public Map<String, Object> captureFlattened() throws GrokException {
+  public Map<String, Object> captureFlattened() {
     return capture(true);
   }
 
@@ -166,34 +167,39 @@ public class Match {
       if (capture.containsKey(key)) {
         Object currentValue = capture.get(key);
 
-        if (flattened) {
-          if (currentValue == null && value != null) {
-            capture.put(key, value);
-          }
-          if (currentValue != null && value != null) {
-            throw new GrokException(
-                format(
-                    "key '%s' has multiple non-null values, this is not allowed in flattened mode, values:'%s', '%s'",
-                    key,
-                    currentValue,
-                    value));
+        if (currentValue instanceof List) {
+          @SuppressWarnings("unchecked")
+          List<Object> cvl = (List<Object>) currentValue;
+          if (!cvl.contains(value)) {
+            cvl.add(value);
           }
         } else {
-          if (currentValue instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> cvl = (List<Object>) currentValue;
-            cvl.add(value);
-          } else {
-            List<Object> list = new ArrayList<Object>();
-            list.add(currentValue);
-            list.add(value);
-            capture.put(key, list);
-          }
+            if (value != null && !value.equals(currentValue)) {
+              List<Object> list = new ArrayList<Object>();
+              list.add(currentValue);
+              list.add(value);
+              capture.put(key, list);
+            }
         }
+
       } else {
         capture.put(key, value);
       }
     });
+
+    if (flattened) {
+      capture.forEach((key, value) -> {
+        if (value instanceof List) {
+          @SuppressWarnings("unchecked")
+          List<Object> valueList = ((List<Object>) value).stream().filter(Objects::nonNull).collect(Collectors.toList());
+          if (valueList.size() == 1) {
+            capture.put(key, valueList.iterator().next());
+          } else {
+            capture.put(key, valueList);
+          }
+        }
+      });
+    }
 
     capture = Collections.unmodifiableMap(capture);
 

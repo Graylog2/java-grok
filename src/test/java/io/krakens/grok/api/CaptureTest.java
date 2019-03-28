@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -124,26 +126,36 @@ public class CaptureTest {
   }
 
   @Test
-  public void test008_flattenDuplicateKeys() throws GrokException {
-    Grok grok = compiler.compile("(?:foo %{INT:id} bar|bar %{INT:id} foo)");
-    Match match = grok.match("foo 123 bar");
-    Map<String, Object> map = match.captureFlattened();
-    assertEquals(map.size(), 1);
-    assertEquals(map.get("id"), "123");
-    Match m2 = grok.match("bar 123 foo");
-    map = m2.captureFlattened();
-    assertEquals(map.size(), 1);
-    assertEquals(map.get("id"), "123");
+  public void test009_capturedFlattenBehavior() throws GrokException {
+    /* Test flatten with OR where the first result is not null [test1, null] */
+    final Grok grok1 = compiler.compile("%{ORTEST}");
+    final Match match1 = grok1.match("test1");
+    final Map<String, Object> map1 = match1.captureFlattened();
+    assertEquals(map1.size(), 2);
+    assertEquals("test1",map1.get("test"));
+    assertEquals("test1", map1.get("ORTEST"));
 
-    grok = compiler.compile("%{INT:id} %{INT:id}");
-    Match m3 = grok.match("123 456");
+    /* Test flatten with OR where the second result is not null [null, test2] */
+    final Match match2 = grok1.match("test2");
+    final Map<String, Object> map2 = match2.captureFlattened();
+    assertEquals(map2.size(),2);
+    assertEquals("test2", map2.get("test"));
+    assertEquals("test2", map2.get("ORTEST"));
 
-    try {
-      m3.captureFlattened();
-      fail("should report error due tu ambiguity");
-    } catch (RuntimeException e) {
-      assertThat(e.getMessage(),
-          containsString("has multiple non-null values, this is not allowed in flattened mode"));
-    }
+    /* Test flatten with a multiple non unique result [ 22, 23 ] */
+    final Grok grok2 = compiler.compile("%{TWOINTS}");
+    final Match match3 = grok2.match("22 23");
+    final Map<String, Object> map3 = match3.captureFlattened();
+    assertEquals(2, map3.size());
+    assertEquals("22 23", map3.get("TWOINTS"));
+    assertEquals(Arrays.asList("22", "23"), map3.get("INT"));
+
+    /* Test flatten with a multiple but unique result [ 22, 22 ] */
+    final Grok grok3 = compiler.compile("%{TWOINTS}");
+    final Match match4 = grok3.match("22 22");
+    final Map<String, Object> map4 = match4.captureFlattened();
+    assertEquals(2, map4.size());
+    assertEquals("22 22", map4.get("TWOINTS"));
+    assertEquals("22", map4.get("INT"));
   }
 }
