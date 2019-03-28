@@ -127,6 +127,7 @@ public class CaptureTest {
 
   @Test
   public void test009_capturedFlattenBehavior() throws GrokException {
+    /* Test flatten with OR where the first result is not null [test1, null] */
     final Grok grok1 = compiler.compile("%{ORTEST}");
     final Match match1 = grok1.match("test1");
     final Map<String, Object> map1 = match1.captureFlattened();
@@ -134,12 +135,14 @@ public class CaptureTest {
     assertEquals("test1",map1.get("test"));
     assertEquals("test1", map1.get("ORTEST"));
 
+    /* Test flatten with OR where the second result is not null [null, test2] */
     final Match match2 = grok1.match("test2");
     final Map<String, Object> map2 = match2.captureFlattened();
     assertEquals(map2.size(),2);
     assertEquals("test2", map2.get("test"));
     assertEquals("test2", map2.get("ORTEST"));
 
+    /* Test flatten with a multiple non unique result [ 22, 23 ] */
     final Grok grok2 = compiler.compile("%{TWOINTS}");
     final Match match3 = grok2.match("22 23");
     final Map<String, Object> map3 = match3.captureFlattened();
@@ -147,8 +150,9 @@ public class CaptureTest {
     assertEquals("22 23", map3.get("TWOINTS"));
     assertEquals(Arrays.asList("22", "23"), map3.get("INT"));
 
+    /* Test flatten with a multiple but unique result [ 22, 22 ] */
     final Grok grok3 = compiler.compile("%{TWOINTS}");
-    final Match match4 = grok2.match("22 22");
+    final Match match4 = grok3.match("22 22");
     final Map<String, Object> map4 = match4.captureFlattened();
     assertEquals(2, map4.size());
     assertEquals("22 22", map4.get("TWOINTS"));
